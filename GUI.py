@@ -22,7 +22,9 @@ from multiprocessing import Process, Pool
 import re
 import sys
 from mtcnn import MTCNN
-
+import time
+import base64
+import google_drive
 class Ui_MainWindow(QMainWindow):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -151,7 +153,7 @@ class Ui_MainWindow(QMainWindow):
         print(self.face_database)
         with open("pickle.txt", "rb") as f:
             self.face_database = pickle.load(f)
-            self.show_message("Thông báo", "Lưu thành công")
+            self.show_message("Thông báo", "Load dữ liệu thành công")
         
     def load_database(self):
         try:
@@ -354,13 +356,27 @@ class Ui_MainWindow(QMainWindow):
                     cv2.putText(frame, "Dist : " + str(min_dist), (x, y - 20), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
 
             cv2.imshow('Face Recognition System', frame)
-            if(cv2.waitKey(1) & 0xFF == ord('q')) or self.recognize== False or self.take_a_picture == False:
+            if(cv2.waitKey(1) == ord('q')) or self.recognize== False or self.take_a_picture == False:
                 self.recognize = False
                 name = self.show_input_dialog("Thông báo", "Nhập tên bức ảnh: ")
                 path = "take_a_pic/"+name+".jpg"
                 path_copy = "take_a_pic/"+name+"_copy.jpg"
+                seconds = time.time()
+                local_seconds = time.localtime(seconds)
+                path_time = str(local_seconds.tm_hour) + ":"+str(local_seconds.tm_min)+":"+str(local_seconds.tm_sec)+"_"+str(local_seconds.tm_mday)+"_"+str(local_seconds.tm_mon)+"_"+str(local_seconds.tm_year)
+                path_name = "take_a_pic/"+name+"_"+path_time+".jpg"
+                path_name_copy = "take_a_pic/"+name+"_copy_"+path_time+".jpg"
                 save_image(frame,path)
                 save_image(frame_copy,path_copy)
+                # frame_copy = cv2.resize(frame_copy,(160,160))
+                # im_send = cv2.cvtColor(frame_copy,cv2.COLOR_BGR2RGB)
+                # Im_To_Byte = base64.b64encode(im_send)
+                # Byte_to_String = Im_To_Byte.decode()
+                
+                with open(path_copy, "rb") as fid:
+                    data = fid.read()
+                
+                notify(name,path_time, path_copy)
                 self.show_message("Thông báo", "Lưu thành công")
                 break
         # path = self.show_input_dialog("Thông báo","Vui lòng nhập đường dẫn đến ảnh")
@@ -392,7 +408,7 @@ class Ui_MainWindow(QMainWindow):
         while self.recognize == True:
             ret, frame = video_capture.read()
             frame = cv2.flip(frame, 1)
-
+            frame_copy = frame.copy()
             faces = crop_face(frame, detector)
 
             for(x,y,w,h) in faces:
@@ -527,13 +543,16 @@ def recognize_image(path, THRESHOLD, face_database,detector):
     cv2.imshow('Face Recognition System', frame)
     cv2.waitKey(20000)
 from pusher_push_notifications import PushNotifications
-def notify(name):
+def notify(name, time, image_path):
+    service = google_drive.get_service()
+
+    image_id = google_drive.upload_file(name+"_"+time,image_path,service) 
     pn_client = PushNotifications(
         instance_id='d565ede4-c39f-4978-8d91-2b249efd7eee',
         secret_key='ACD47A2B2F277C3EFE35FC53535019E716E43CF0085F18A1FFC24C893FC7F943',
     )
     response = pn_client.publish_to_interests(
-        interests=['51403072'],
+        interests=['51403071'],
         publish_body={
             'apns': {
                 'aps': {
@@ -543,8 +562,10 @@ def notify(name):
             'fcm': {
                 
                 "data": {
-                    "body":"Xin chao "+name,
-                    "title":"Hello+" +name
+                    "body":"Em "+name +" đã có mặt tại trường lúc: ",
+                    "title":"Xin chào phụ huynh em "+name,
+                    "image_id": image_id,
+                    "time": time
                 }
             }
         }
