@@ -372,7 +372,7 @@ class Ui_MainWindow(QMainWindow):
                     code = name_and_code[1]
                 seconds = time.time()
                 local_seconds = time.localtime(seconds)
-                path_time = str(local_seconds.tm_hour) + "h"+str(local_seconds.tm_min)+"m"+str(local_seconds.tm_sec)+"s_"+str(local_seconds.tm_mday)+"_"+str(local_seconds.tm_mon)+"_"+str(local_seconds.tm_year)
+                path_time = str(local_seconds.tm_hour) + "_"+str(local_seconds.tm_min)+"_"+str(local_seconds.tm_sec)+"_"+str(local_seconds.tm_mday)+"_"+str(local_seconds.tm_mon)+"_"+str(local_seconds.tm_year)
                 path_name = "take_a_pic//"+name_ori+"_"+path_time+".jpg"
                 path_name_copy = "take_a_pic//"+name_ori+"_copy_"+path_time+".jpg"
                 save_image(frame,path_name)
@@ -460,7 +460,7 @@ class Ui_MainWindow(QMainWindow):
                     code = name_and_code[1]
                     seconds = time.time()
                     local_seconds = time.localtime(seconds)
-                    path_time = str(local_seconds.tm_hour) + "h"+str(local_seconds.tm_min)+"m"+str(local_seconds.tm_sec)+"s_"+str(local_seconds.tm_mday)+"_"+str(local_seconds.tm_mon)+"_"+str(local_seconds.tm_year)
+                    path_time = str(local_seconds.tm_hour) + "_"+str(local_seconds.tm_min)+"_"+str(local_seconds.tm_sec)+"_"+str(local_seconds.tm_mday)+"_"+str(local_seconds.tm_mon)+"_"+str(local_seconds.tm_year)
                     path_name = "take_a_pic/"+name+"_"+code+"_"+path_time+".jpg"
                     path_name_copy = "take_a_pic/"+name+"_"+code+"_copy_"+path_time+".jpg"
                     save_image(frame,path_name)
